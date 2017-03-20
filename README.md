@@ -15,6 +15,7 @@ socket.onmessage = function (event) {
 Then, in the CLI:
 
 `control`
+
 `[the number label of the session you wish to control]`
 
 Then you will be prompted to run any Javascript you want.
