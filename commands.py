@@ -17,10 +17,13 @@ class CMD(object):
         self.name = name
         self.command = command
         self.description = description
+        self.argv = []
 
     def matches_command(self, arg):
         if len(arg) > 0 and arg[0] == ">":
-            return arg[1:] == self.command
+            if arg[1:].split(' ')[0] == self.command:
+                self.argv = arg.split(' ')
+                return True
         return False
 
     @abc.abstractmethod
@@ -39,137 +42,105 @@ class CommandPWN(CMD):
         cmd = CommandClearBody()
         payload = cmd.get_payload()
         payload = payload + """
-            document.body.style = "background-color: black";
-            var Glitcher = (function () {
-                function Glitcher(options) {
-                    this.canvas = document.createElement('canvas');
-                    this.canvas.style = "position: absolute;top: 0;right: 0;bottom: 0;left: 0;margin: auto;"
-                    this.context = this.canvas.getContext('2d');
-                    this.origCanvas = document.createElement('canvas');
-                    this.origContext = this.origCanvas.getContext('2d');
-                    this.options = options;
+            (function (){
+              var canvas = document.createElement('canvas');
+              canvas.id = "c";
+              canvas.width = "1000";
+              canvas.height = "500";
+              document.body.appendChild(canvas);
+              var ctx = canvas.getContext('2d');
+              var text = \"""" + " ".join(self.argv[1:]) + """\";
+
+              var count = 200;
+              var dir = 5;
+
+              ctx.textAlign = "center"
+              ctx.textBaseline = "middle";
+              ctx.font = "200pt Arial";
+
+
+              function ret(nr) {
+                return Math.abs((nr%400) + 100);
+              }
+              function pos(nr) {
+                //return nr;
+
+                if(nr<300) {
+                  return ret(nr);
                 }
-                Glitcher.prototype.glitch = function (url, callback) {
-                    var _this = this;
-                    this.loadImage(url, function (img) {
-                        _this.renderImage(img);
-                        _this.process();
-                        callback();
-                    });
-                };
 
-                Glitcher.prototype.process = function () {
-                    var imageData = this.origContext.getImageData(0, 0, this.width, this.height), pixels = imageData.data, length = pixels.length, options = this.options, brightness, offset, i, x, y;
 
-                    for (i = 0; i < length; i += 4) {
-                        if (options.color) {
-                            pixels[i] *= options.color.red;
-                            pixels[i + 1] *= options.color.green;
-                            pixels[i + 2] *= options.color.blue;
-                        }
+                if(nr>=500 && nr<700) {
+                  return ret((nr-300)/2 + 300);
+                }
 
-                        if (options.greyscale) {
-                            brightness = pixels[i] * options.greyscale.red + pixels[i + 1] * options.greyscale.green + pixels[i + 2] * options.greyscale.blue;
+                return ret((500-nr));
 
-                            pixels[i] = brightness;
-                            pixels[i + 1] = brightness;
-                            pixels[i + 2] = brightness;
-                        }
+              }
 
-                        if (options.stereoscopic) {
-                            offset = options.stereoscopic.red;
-                            pixels[i] = (pixels[i + 4 * offset] === undefined) ? 0 : pixels[i + 4 * offset];
+              function step() {
+                count += dir;
 
-                            offset = options.stereoscopic.green;
-                            pixels[i + 1] = (pixels[i + 1 + 4 * offset] === undefined) ? 0 : pixels[i + 1 + 4 * offset];
 
-                            offset = options.stereoscopic.blue;
-                            pixels[i + 2] = (pixels[i + 2 + 4 * offset] === undefined) ? 0 : pixels[i + 2 + 4 * offset];
-                        }
-                    }
+                if(count >= 1000) {
+                  count = 200;
+                  window.setTimeout(function(){window.requestAnimationFrame(step)},500);
+                  return;
+                }
 
-                    if (options.lineOffset) {
-                        i = 0;
+                var top = pos(count);
 
-                        for (y = 0; y < this.height; y++) {
-                            offset = (y % options.lineOffset.lineHeight === 0) ? Math.round(Math.random() * options.lineOffset.value) : offset;
+                ctx.clearRect(0,0,1000,500);
 
-                            for (x = 0; x < this.width; x++) {
-                                i += 4;
-                                pixels[i + 0] = (pixels[i + 4 * offset] === undefined) ? 0 : pixels[i + 4 * offset];
-                                pixels[i + 1] = (pixels[i + 1 + 4 * offset] === undefined) ? 0 : pixels[i + 1 + 4 * offset];
-                                pixels[i + 2] = (pixels[i + 2 + 4 * offset] === undefined) ? 0 : pixels[i + 2 + 4 * offset];
-                            }
-                        }
-                    }
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(0,top,1000,100);
+                ctx.clip();
+                ctx.fillStyle = "blue"
+                ctx.fillText(text,495,245,1000,500)
+                ctx.restore();
 
-                    if (options.glitch) {
-                    }
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(0,top-100,1000,10);
+                ctx.clip();
+                ctx.fillStyle = "red"
+                ctx.fillText(text,505,255,1000,500)
+                ctx.restore();
 
-                    this.context.putImageData(imageData, 0, 0);
-                };
+                  ctx.fillStyle = "white"
+                ctx.fillText(text,500,250,1000,500)
 
-                Glitcher.prototype.loadImage = function (url, callback) {
-                    var img = document.createElement('img');
-                    img.crossOrigin = 'anonymous';
-                    img.onload = function () {
-                        callback(img);
-                    };
-                    img.src = url;
-                };
 
-                Glitcher.prototype.renderImage = function (img) {
-                    this.canvas.width = this.origCanvas.width = this.width = img.width;
-                    this.canvas.height = this.origCanvas.height = this.height = img.height;
+                bw(top,40,10,1000,500);
+                bw(top,120,-17,500,0);
 
-                    this.origContext.drawImage(img, 0, 0);
-                };
-                return Glitcher;
+
+
+                window.requestAnimationFrame(step)
+              }
+
+              function bw(top,o,off,r,i) {
+                    ctx.save();
+                ctx.beginPath();
+                ctx.rect(i,top-o,r,30);
+                ctx.clip();
+                ctx.fillStyle = "black"
+                ctx.fillText(text,500,250,1000,500)
+                ctx.restore();
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(i,top-o,r,20);
+                ctx.clip();
+                ctx.fillStyle = "white"
+                ctx.fillText(text,500-off,250,1000,500)
+                ctx.restore();
+              }
+
+
+              window.requestAnimationFrame(step)
             })();
-
-            var glitcher = new Glitcher({
-                color: {
-                    red: 1,
-                    green: 1,
-                    blue: 1
-                },
-                stereoscopic: {
-                    red: 10,
-                    green: 20,
-                    blue: 0
-                },
-                lineOffset: {
-                    value: 4
-                }
-            });
-
-            glitcher.glitch('http://placekitten.com/400/480', function () {
-                document.body.appendChild(glitcher.canvas);
-            });
-
-            function randomRange(min, max) {
-                return Math.floor(Math.random() * (max - min + 1)) + min;
-            }
-
-            setInterval(function () {
-                glitcher.options = {
-                    color: {
-                        red: 1,
-                        green: 0.8,
-                        blue: 0.58
-                    },
-                    stereoscopic: {
-                        red: 10 * randomRange(1, 3),
-                        green: 5 * randomRange(1, 3),
-                        blue: 30 * randomRange(1, 3)
-                    },
-                    lineOffset: {
-                        value: 5 * randomRange(1, 3),
-                        lineHeight: 10 * randomRange(1, 3)
-                    }
-                };
-                glitcher.process();
-            }, 100);
 
         """
         return payload
@@ -203,3 +174,23 @@ class CommandFishy(CMD):
             img.width="1000";img.height="1200";
             document.body.appendChild(img);
         """
+
+class CommandInsertImage(CMD):
+
+    def __init__(self):
+        super(CommandInsertImage, self).__init__(
+              "Insert Image",
+              "insertimage",
+              "Adds an image to the end of a webpage. (usage: >insertimage [url])")
+
+    def get_payload(self):
+        if len(self.argv) < 2:
+            print "Must provide URL (usage: >insertimage [url])"
+            return ""
+
+        return """
+            var img = document.createElement('img');
+            img.src="{}";
+            img.width="1000";img.height="1200";
+            document.body.appendChild(img);
+        """.format(self.argv[1])
