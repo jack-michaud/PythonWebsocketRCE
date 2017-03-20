@@ -17,6 +17,8 @@ OPCODE_PONG = 0xa
 
 class WebsocketServer:
 
+    CLIENTS = []
+
     def __init__(self, local_host, local_port):
         self.local_host = local_host
         self.local_port = local_port
@@ -31,19 +33,26 @@ class WebsocketServer:
 
         self.server = server
 
-    def listen(self):
+    def listen(self, persist=False):
         print "[*] Listening on {}:{}".format(self.local_host, self.local_port)
         self.server.listen(5)
 
         while True:
+
             client_socket,addr = self.server.accept()
             print "[==>] Received incoming connection from {}:{}".format(addr[0], addr[1])
 
             proxy_thread = threading.Thread(target=self.__connection_handler,
-                            args=(client_socket,))
+                            args=(client_socket, addr))
             proxy_thread.start()
 
-    def __connection_handler(self, client_socket):
+            if persist:
+                continue
+            else:
+                return
+
+
+    def __connection_handler(self, client_socket, addr):
         print "[*] Handling connection"
         data = self.__recv_from(client_socket)
         req = Request(data)
@@ -56,22 +65,34 @@ class WebsocketServer:
                     client_socket.send(resp)
                 print self.__recv_from(client_socket)
                 print "[*] Succeeded!"
+                self.CLIENTS.append({"socket": client_socket, "addr": addr})
             except Exception as e:
                 print "[!!] Failed"
                 print str(e)
                 return
 
+    def control_client(self, client_socket):
+        print ""
+        print "Javascript code interpreter! '>quit' to close out interpreter,"
+        print "'>close' to close the client connection."
         while True:
-            print "[?] Javascript Code to Execute: "
+            print "[?] Javascript Code to Execute on {}: ".format(client_socket['addr'])
             try:
                 payload = raw_input()
+                if ">quit" == payload:
+                    print "[*] Quit client control."
+                    return
+                if ">close" == payload:
+                    client_socket['socket'].close()
+                    print "[*] Closing client connection."
+                    self.CLIENTS.remove(client_socket)
+                    return
             except KeyboardInterrupt as e:
                 print "[*] Closing client"
-                client_socket.close()
                 return
 
-            client_socket.send(self.packet_bytes_with_payload(payload))
-            buffer = self.__recv_from(client_socket)
+            client_socket['socket'].send(self.packet_bytes_with_payload(payload))
+            buffer = self.__recv_from(client_socket['socket'])
             s = Stream()
 
             s.parser.send(buffer)
