@@ -4,6 +4,7 @@ import os
 import threading
 import base64
 import hashlib
+import commands
 
 from ws4py.framing import Frame
 from ws4py.streaming import Stream
@@ -15,9 +16,17 @@ OPCODE_CLOSE = 0x8
 OPCODE_PING = 0x9
 OPCODE_PONG = 0xa
 
+def get_commands():
+    cmds = [commands.__dict__[c]()
+            for c in commands.__dict__.keys()
+            if "Command" in c]
+    return cmds
+
+
 class WebsocketServer:
 
     CLIENTS = []
+    COMMANDS = get_commands()
 
     def __init__(self, local_host, local_port):
         self.local_host = local_host
@@ -90,6 +99,12 @@ class WebsocketServer:
             except KeyboardInterrupt as e:
                 print "[*] Closing client"
                 return
+
+            # Shortcut Commands (see commands.py)
+            for command in self.COMMANDS:
+                if command.matches_command(payload):
+                    payload = command.get_payload()
+                    break
 
             client_socket['socket'].send(self.packet_bytes_with_payload(payload))
             buffer = self.__recv_from(client_socket['socket'])
