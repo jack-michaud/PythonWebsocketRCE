@@ -36,7 +36,7 @@ class CommandPWN(CMD):
         super(CommandPWN, self).__init__(
               "PWN",
               "pwned",
-              "Clears the whole screen and replaces it with a glitchy image")
+              "Clears the whole screen and replaces it with glitchy text (usage: >pwned [Text])")
 
     def get_payload(self):
         cmd = CommandClearBody()

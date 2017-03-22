@@ -83,7 +83,7 @@ class WebsocketServer:
     def control_client(self, client_socket):
         print ""
         print "Javascript code interpreter! '>quit' to close out interpreter,"
-        print "'>close' to close the client connection."
+        print "'>close' to close the client connection. '>help' for custom commands."
         while True:
             print "[?] Javascript Code to Execute on {}: ".format(client_socket['addr'])
             try:
@@ -96,6 +96,16 @@ class WebsocketServer:
                     print "[*] Closing client connection."
                     self.CLIENTS.remove(client_socket)
                     return
+                if ">help" == payload:
+                    print ">quit - quits the Javascript interpreter"
+                    print ">close - closes the client connection"
+                    print ""
+                    print "CUSTOM COMMANDS"
+                    for command in self.COMMANDS:
+                        print command.name
+                        print "|--- >" + command.command
+                        print "|--- " + command.description
+                    continue
             except KeyboardInterrupt as e:
                 print "[*] Closing client"
                 return
