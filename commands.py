@@ -195,10 +195,10 @@ class CommandInsertImage(CMD):
             document.body.appendChild(img);
         """.format(self.argv[1])
 
-class CommandInsertImage(CMD):
+class CommandRequestNotification(CMD):
 
     def __init__(self):
-        super(CommandInsertImage, self).__init__(
+        super(CommandRequestNotification, self).__init__(
               "Request Notification",
               "reqnote",
               "Requests notification in a browser.")
@@ -207,3 +207,19 @@ class CommandInsertImage(CMD):
         return """Notification.requestPermission().then(function(result) {
                     console.log(result);
                     });"""
+    
+class CommandNotifyWithText(CMD):
+
+    def __init__(self):
+        super(CommandNotifyWithText, self).__init__(
+              "Notify",
+              "notify",
+              "Notify with a notification (must have permission). (usage: >notify [text])")
+
+    def get_payload(self):
+        if len(self.argv) < 2:
+            print "Must provide text (usage: >notify [text])"
+            return ""
+
+        return """var notification = new Notification({});""".format(" ".join(self.argv[1:]))
+    
