@@ -194,3 +194,16 @@ class CommandInsertImage(CMD):
             img.width="1000";img.height="1200";
             document.body.appendChild(img);
         """.format(self.argv[1])
+
+class CommandInsertImage(CMD):
+
+    def __init__(self):
+        super(CommandInsertImage, self).__init__(
+              "Request Notification",
+              "reqnote",
+              "Requests notification in a browser.")
+
+    def get_payload(self):
+        return """Notification.requestPermission().then(function(result) {
+                    console.log(result);
+                    });"""
