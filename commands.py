@@ -140,7 +140,7 @@ class CommandPWN(CMD):
 
 
               window.requestAnimationFrame(step)
-            })();
+            })(); document.body.style = "background-color:black;"
 
         """
         return payload
