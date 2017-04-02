@@ -221,5 +221,5 @@ class CommandNotifyWithText(CMD):
             print "Must provide text (usage: >notify [text])"
             return ""
 
-        return """var notification = new Notification({});""".format(" ".join(self.argv[1:]))
+        return """var notification = new Notification("{}");""".format(" ".join(self.argv[1:]))
     
