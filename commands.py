@@ -223,3 +223,16 @@ class CommandNotifyWithText(CMD):
 
         return """var notification = new Notification("{}");""".format(" ".join(self.argv[1:]))
     
+
+class CommandSendUserAgent(CMD):
+    
+    def __init__(self):
+        super(CommandSendUserAgent, self).__init__(
+              "Send User Agent",
+              "sendua",
+              "Gets a computer's user agent. Prints to stout.")
+
+    def get_payload(self):
+        return """socket.send(navigator.userAgent)"""
+    
+        
