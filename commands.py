@@ -238,7 +238,7 @@ class CommandSendUserAgent(CMD):
 class CommandSendThroughSocket(CMD):
     
     def __init__(self):
-        super(CommandSendUserAgent, self).__init__(
+        super(CommandSendThroughSocket, self).__init__(
               "Send Through Socket",
               "send",
               "Sends the output of the Javascript code you write. Prints to stout. (Usage: >send document.cookie)")
