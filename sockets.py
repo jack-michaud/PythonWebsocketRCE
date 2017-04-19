@@ -36,36 +36,40 @@ class WebsocketServer:
         try:
             server.bind((local_host, local_port))
         except Exception as e:
-            print "[!!] Failed to listen on {}:{}".format(local_host, local_port)
+            print "[!!]  Failed to listen on {}:{}".format(local_host, local_port)
             print str(e)
             sys.exit(0)
 
         self.server = server
 
     def listen(self, persist=False):
-        print "[*] Listening on {}:{}".format(self.local_host, self.local_port)
+        print "[*]   Listening on {}:{}".format(self.local_host, self.local_port)
+        print "[*]   Use Ctrl+C to stop listening!"
         self.server.listen(5)
 
         while True:
+            try:
+                client_socket,addr = self.server.accept()
+                print "[==>] Received incoming connection from {}:{}".format(addr[0], addr[1])
 
-            client_socket,addr = self.server.accept()
-            print "[==>] Received incoming connection from {}:{}".format(addr[0], addr[1])
+                proxy_thread = threading.Thread(target=self.__connection_handler,
+                                args=(client_socket, addr))
+                proxy_thread.start()
 
-            proxy_thread = threading.Thread(target=self.__connection_handler,
-                            args=(client_socket, addr))
-            proxy_thread.start()
-
-            if persist:
-                continue
-            else:
+                if persist:
+                    continue
+                else:
+                    return
+            except KeyboardInterrupt:
+                print "\n[*]   Stopped listening.\n"
                 return
 
 
     def __connection_handler(self, client_socket, addr):
-        print "[*] Handling connection"
+        print "[*]   Handling connection"
         data = self.__recv_from(client_socket)
         req = Request(data)
-        print "[*] Is valid WebSocket: " + str(req.is_valid_websocket())
+        print "[*]   Is valid WebSocket: " + str(req.is_valid_websocket())
 
         if req.is_valid_websocket():
             print "[<==] Attempting to make connection..."
@@ -73,28 +77,28 @@ class WebsocketServer:
                 for resp in req.generate_websocket_response():
                     client_socket.send(resp)
                 print self.__recv_from(client_socket)
-                print "[*] Succeeded!"
+                print "[*]   Succeeded!"
                 self.CLIENTS.append({"socket": client_socket, "addr": addr})
             except Exception as e:
-                print "[!!] Failed"
+                print "[!!]  Failed"
                 print str(e)
-                return
 
-    def control_client(self, client_socket):
+    def control_clients(self, client_sockets):
         print ""
         print "Javascript code interpreter! '>quit' to close out interpreter,"
         print "'>close' to close the client connection. '>help' for custom commands."
         while True:
-            print "[?] Javascript Code to Execute on {}: ".format(client_socket['addr'])
+            print "[?]   Javascript Code to Execute on {}: ".format([c['addr'] for c in client_sockets])
             try:
                 payload = raw_input()
                 if ">quit" == payload:
-                    print "[*] Quit client control."
+                    print "[*]   Quit client control."
                     return
                 if ">close" == payload:
                     client_socket['socket'].close()
-                    print "[*] Closing client connection."
-                    self.CLIENTS.remove(client_socket)
+                    print "[*]   Closing client connection."
+                    for client_socket in client_sockets:
+                        self.CLIENTS.remove(client_socket)
                     return
                 if ">help" == payload:
                     print ">quit - quits the Javascript interpreter"
@@ -107,7 +111,7 @@ class WebsocketServer:
                         print "|--- " + command.description
                     continue
             except KeyboardInterrupt as e:
-                print "[*] Closing client"
+                print "[*]   Closing client"
                 return
 
             # Shortcut Commands (see commands.py)
@@ -116,13 +120,14 @@ class WebsocketServer:
                     payload = command.get_payload()
                     break
 
-            client_socket['socket'].send(self.packet_bytes_with_payload(payload))
-            buffer = self.__recv_from(client_socket['socket'])
-            s = Stream()
+            for client_socket in client_sockets:
+                client_socket['socket'].send(self.packet_bytes_with_payload(payload))
+                buffer = self.__recv_from(client_socket['socket'])
+                s = Stream()
 
-            s.parser.send(buffer)
-            if s.has_message:
-                print s.message
+                s.parser.send(buffer)
+                if s.has_message:
+                    print s.message
 
     def packet_bytes_with_payload(self, payload):
         f = Frame(OPCODE_TEXT, payload, fin=1)
