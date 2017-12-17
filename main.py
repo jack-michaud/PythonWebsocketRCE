@@ -7,13 +7,14 @@ import threading
 from sockets import WebsocketServer
 
 
+from printer import Printer
 
 if __name__ == "__main__":
 
     try:
         server = WebsocketServer("0.0.0.0", 1337)
         global listener_thread
-
+        p = Printer()
         print "PyRCE - Commands: listen, list, control"
         while True:
             cmd = raw_input('>')
@@ -24,12 +25,12 @@ if __name__ == "__main__":
                 listener_thread.stop()
             if cmd == "list":
                 if server.CLIENTS == []:
-                    print "[*]   There are no clients connected. Use 'listen' to collect clients."
+                    p.info("There are no clients connected. Use 'listen' to collect clients.")
                 else:
                     for i,c in enumerate(server.CLIENTS):
                         print "{}. {}".format(i+1, c['addr'])
             if cmd == "control":
-                print "[?]   Which clients? (1 2 ...)"
+                p.prompt("Which clients? (1 2 ...)")
                 for i,c in enumerate(server.CLIENTS):
                     print "{}. {}".format(i+1, c['addr'])
 
@@ -48,10 +49,10 @@ if __name__ == "__main__":
                 #     print "[!!]  Removing client from list."
                 #     server.CLIENTS.remove(client_socket)
                 except Exception as e:
-                    print "[!!]  Unable to use these clients."
-                    print "[!!]  " + str(e)
+                    p.error("Unable to use these clients.")
+                    p.error(str(e))
 
 
     except KeyboardInterrupt:
-        print "[*]   Closing connection..."
+        p.info("Closing connection...")
         server.server.close()

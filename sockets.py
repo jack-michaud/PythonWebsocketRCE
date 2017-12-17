@@ -22,6 +22,8 @@ def get_commands():
             if "Command" in c]
     return cmds
 
+from printer import Printer
+p = Printer()
 
 class WebsocketServer:
 
@@ -43,8 +45,8 @@ class WebsocketServer:
         self.server = server
 
     def listen(self, persist=False):
-        print "[*]   Listening on {}:{}".format(self.local_host, self.local_port)
-        print "[*]   Use Ctrl+C to stop listening!"
+        p.info("Listening on {}:{}".format(self.local_host, self.local_port))
+        p.info("Use Ctrl+C to stop listening!")
         self.server.listen(5)
 
         while True:
@@ -61,7 +63,7 @@ class WebsocketServer:
                 else:
                     return
             except KeyboardInterrupt:
-                print "\n[*]   Stopped listening.\n"
+                p.info("Stopped listening.\n")
                 return
 
 
@@ -85,24 +87,24 @@ class WebsocketServer:
 
     def control_clients(self, client_sockets):
         print ""
-        print "Javascript code interpreter! '>quit' to close out interpreter,"
-        print "'>close' to close the client connection. '>help' for custom commands."
+        p.info("Javascript code interpreter! '>quit' to close out interpreter,")
+        p.info("'>close' to close the client connection. '>help' for custom commands.")
         while True:
-            print "[?]   Javascript Code to Execute on {}: ".format([c['addr'] for c in client_sockets])
+            p.prompt("Javascript Code to Execute on {}: ".format([c['addr'] for c in client_sockets]))
             try:
                 payload = raw_input()
                 if ">quit" == payload:
-                    print "[*]   Quit client control."
+                    p.info("Quit client control.")
                     return
                 if ">close" == payload:
                     client_socket['socket'].close()
-                    print "[*]   Closing client connection."
+                    p.info("Closing client connection.")
                     for client_socket in client_sockets:
                         self.CLIENTS.remove(client_socket)
                     return
                 if ">help" == payload:
-                    print ">quit - quits the Javascript interpreter"
-                    print ">close - closes the client connection"
+                    p.info(">quit - quits the Javascript interpreter")
+                    p.info(">close - closes the client connection")
                     print ""
                     print "CUSTOM COMMANDS"
                     for command in self.COMMANDS:
@@ -111,7 +113,7 @@ class WebsocketServer:
                         print "|--- " + command.description
                     continue
             except KeyboardInterrupt as e:
-                print "[*]   Closing client"
+                p.info("Closing client")
                 return
 
             # Shortcut Commands (see commands.py)
