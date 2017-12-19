@@ -3,6 +3,8 @@ class clrs:
     OKBLUE = '\033[94m'
     RED = '\033[31m'
     CYAN = '\033[36m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
     END = '\033[0m'
 
 class Printer:
@@ -19,5 +21,7 @@ class Printer:
     def error(self, msg):
         self.color_message(clrs.RED, msg, "!")
 
+    def warn(self, msg):
+        self.color_message(clrs.YELLOW, msg, ".")
 
 
