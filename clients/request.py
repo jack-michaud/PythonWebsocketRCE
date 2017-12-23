@@ -1,3 +1,6 @@
+import hashlib
+import base64
+
 class Request:
 
     def __init__(self, raw):
@@ -34,4 +37,4 @@ class Request:
                "Upgrade: websocket\r" + \
                "Connection: Upgrade\r" + \
                "Sec-WebSocket-Protocol: chat\r" + \
-               "Sec-WebSocket-Accept: " + self.generate_accept_value() + "\r\n\n"]
+               "Sec-WebSocket-Accept: " + self.generate_accept_value() + "\r\n\r\n"]

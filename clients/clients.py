@@ -1,10 +1,13 @@
 import threading
-from request import Request
 
-from printer import Printer
+from request import Request
+from printer import Printer, clrs
+
+
+
 p = Printer()
 
-class Client:
+class Client(object):
 
     active = False # is this connection active?
 
@@ -18,11 +21,11 @@ class Client:
         return CLIENTS.get(type)(self)
 
     def start_handler_thread(self):
-        import pdb; pdb.set_trace()
-        thread = threading.Thread(target=self.__connection_handler)
+        p.info("Starting thread.")
+        thread = threading.Thread(target=self.connection_handler)
         thread.start()
 
-    def __recv(self):
+    def recv(self):
         '''
         Get all data waiting to be received.
 
@@ -32,7 +35,7 @@ class Client:
         self.socket.settimeout(1)
         try:
             while True:
-                data = connection.recv(1024)
+                data = self.socket.recv(1024)
                 if not data:
                     break
                 buffer = buffer + data
@@ -40,19 +43,19 @@ class Client:
             pass
         return buffer
 
-    def __send(self, data):
+    def send(self, data):
         self.socket.send(data)
 
-    def __connection_handler(self):
-        data = self.__recv()
-
+    def connection_handler(self):
+        data = self.recv()
         req = Request(data)
         if req.is_valid_websocket():
             for resp in req.generate_websocket_response():
-                self.__send(resp)
-            self.__recv()
+                self.send(resp)
+            # self.recv()
+            import pdb; pdb.set_trace()
             self.active = True
-            print "Is active"
+            p.color_message(clrs.GREEN, "Confirmed connection from {}".format(self.addr[0]), "==>")
 
     def close():
         '''
@@ -64,8 +67,9 @@ class Client:
 class JavascriptClient(Client):
 
     def __init__(self, client):
-        self.socket = client.socket
-        self.addr = client.addr
+        super(JavascriptClient, self).__init__(client.socket, client.addr)
+        # self.socket = client.socket
+        # self.addr = client.addr
 
 
 CLIENTS = {

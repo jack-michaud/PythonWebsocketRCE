@@ -42,51 +42,41 @@ class WebsocketServer:
         if client_type is None:
             raise Exception("Must specify client_type in constructor")
         self.CLIENT_TYPE = client_type
+        self.server = None
 
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
+    def bind(self):
         try:
-            server.bind((local_host, local_port))
+            self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.server.bind((self.local_host, self.local_port))
         except Exception as e:
-            p.error("Failed to listen on {}:{}".format(local_host, local_port))
+            p.error("Failed to listen on {}:{}".format(self.local_host, self.local_port))
             p.error(str(e))
             sys.exit(0)
-
-        self.server = server
 
     def listen(self, persist=False):
         p.info("Listening on {}:{}".format(self.local_host, self.local_port))
         p.info("Use Ctrl+C to stop listening!")
+        self.bind()
         self.server.listen(5)
 
-        waiting_list = []
-
         while True:
-
-            # Check if any clients on the waiting_list have been activated
-            new_list = []
-            for client in waiting_list:
-                if client.active:
-                    p.color_message(self, clrs.GREEN, "Confirmed connection from {}".format(client.addr[0]), "==>")
-                else:
-                    new_list.append(client)
-            waiting_list = new_list
 
             try:
                 client_socket,addr = self.server.accept()
                 new_client = build_client(client_socket, addr, self.CLIENT_TYPE)
                 new_client.start_handler_thread()
-                p.color_message(clrs.GREEN, "Received connection from {}".format(addr[0]), "<==")
                 self.CLIENTS.append(new_client)
-                waiting_list.append(new_client)
+                p.color_message(clrs.GREEN, "Received connection from {}".format(addr[0]), "<==")
 
                 if persist:
                     continue
                 else:
                     return
             except KeyboardInterrupt:
-                p.info("Stopped listening.\n")
-                return
+                break
+
+        p.info("Stopped listening.\n")
+        self.server.close()
 
 
     def control_clients(self, client_sockets):
@@ -127,8 +117,8 @@ class WebsocketServer:
                     break
 
             for client_socket in client_sockets:
-                client_socket.__send(self.packet_bytes_with_payload(payload))
-                buffer = client_socket.__recv()
+                client_socket.send(self.packet_bytes_with_payload(payload))
+                buffer = client_socket.recv()
                 s = Stream()
 
                 s.parser.send(buffer)
