@@ -4,8 +4,8 @@ import os
 import threading
 import base64
 import hashlib
-from client_commands import commands
-from clients import CLIENTS
+
+from clients import CLIENTS as SOCKET_CLIENTS
 
 from ws4py.framing import Frame
 from ws4py.streaming import Stream
@@ -16,15 +16,6 @@ OPCODE_BINARY = 0x2
 OPCODE_CLOSE = 0x8
 OPCODE_PING = 0x9
 OPCODE_PONG = 0xa
-
-def build_client(socket, addr, type):
-    return CLIENTS['BASE'](socket, addr).build_client(type)
-
-def get_commands():
-    cmds = [commands.__dict__[c]()
-            for c in commands.__dict__.keys()
-            if "Command" in c]
-    return cmds
 
 from printer import Printer, clrs
 p = Printer()
@@ -41,6 +32,8 @@ class WebsocketServer:
         self.local_port = local_port
         if client_type is None:
             raise Exception("Must specify client_type in constructor")
+        if SOCKET_CLIENTS.get(client_type) is None:
+            raise Exception("Must be a valid client type. Types: {}".format(SOCKET_CLIENTS.keys()))
         self.CLIENT_TYPE = client_type
         self.server = None
 
@@ -63,7 +56,7 @@ class WebsocketServer:
 
             try:
                 client_socket,addr = self.server.accept()
-                new_client = build_client(client_socket, addr, self.CLIENT_TYPE)
+                new_client = SOCKET_CLIENTS[self.CLIENT_TYPE](client_socket, addr)
                 new_client.start_handler_thread()
                 self.CLIENTS.append(new_client)
                 p.color_message(clrs.GREEN, "Received connection from {}".format(addr[0]), "<==")
@@ -132,6 +125,7 @@ class WebsocketServer:
     def send_data_to_client(self, data, client_socket):
         pass
 
-    def close_websocket_client(self, client_socket):
-        pass
+    def close_websocket_client(self):
+        self.server.close()
+        [client.close() for client in self.CLIENTS]
 

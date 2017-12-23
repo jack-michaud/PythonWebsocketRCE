@@ -15,6 +15,9 @@ class Printer:
     def info(self, msg):
         self.color_message(clrs.OKBLUE, msg, "*")
 
+    def success(self, msg):
+        self.color_message(clrs.GREEN, msg, "+")
+
     def prompt(self, msg):
         self.color_message(clrs.CYAN, msg, "?")
 

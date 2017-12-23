@@ -1,29 +1,52 @@
 import threading
+import abc
+
+from ws4py.framing import Frame
+
+OPCODE_PING = 0x9
 
 from request import Request
 from printer import Printer, clrs
-
 
 
 p = Printer()
 
 class Client(object):
 
+    __metaclass__ = abc.ABCMeta
+
     active = False # is this connection active?
 
     def __init__(self, socket, addr):
         self.socket = socket
         self.addr = addr
+        self.name = None
 
-    def build_client(self, type):
-        if CLIENTS.get(type) is None:
-            raise Exception("Must be a valid client type. Types: {}".format(CLIENTS.keys()))
-        return CLIENTS.get(type)(self)
+    def __str__(self):
+        return "{} {}".format(self.addr, "" if self.name is None else "\"{}\"".format(self.name))
 
     def start_handler_thread(self):
         p.info("Starting thread.")
         thread = threading.Thread(target=self.connection_handler)
         thread.start()
+
+    def rename(self, name):
+        self.name = name
+
+    @abc.abstractmethod
+    def connection_handler(self):
+        '''
+        Establishes connection through handshake.
+
+        '''
+        pass
+
+    @abc.abstractmethod
+    def is_alive(self):
+        '''
+        Check to see if the connection is still active.
+        '''
+        pass
 
     def recv(self):
         '''
@@ -46,31 +69,14 @@ class Client(object):
     def send(self, data):
         self.socket.send(data)
 
-    def connection_handler(self):
-        data = self.recv()
-        req = Request(data)
-        if req.is_valid_websocket():
-            for resp in req.generate_websocket_response():
-                self.send(resp)
-            # self.recv()
-            import pdb; pdb.set_trace()
-            self.active = True
-            p.color_message(clrs.GREEN, "Confirmed connection from {}".format(self.addr[0]), "==>")
-
-    def close():
+    def close(self):
         '''
         Closes socket connection.
         '''
         self.socket.close()
 
 
-class JavascriptClient(Client):
-
-    def __init__(self, client):
-        super(JavascriptClient, self).__init__(client.socket, client.addr)
-        # self.socket = client.socket
-        # self.addr = client.addr
-
+from clients.javascript import JavascriptClient
 
 CLIENTS = {
     "BASE": Client,

