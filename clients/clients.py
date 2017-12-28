@@ -63,7 +63,7 @@ class Client(object):
         @return Data buffer
         '''
         buffer = ""
-        self.socket.settimeout(1)
+        self.socket.settimeout(.3)
         try:
             while True:
                 data = self.socket.recv(1024)
@@ -85,8 +85,10 @@ class Client(object):
 
 
 from clients.javascript import JavascriptClient
+from clients.bash import BashClient
 
 CLIENTS = {
     "BASE": Client,
     "javascript": JavascriptClient,
+    "bash": BashClient,
 }

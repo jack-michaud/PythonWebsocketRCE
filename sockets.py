@@ -37,6 +37,7 @@ class WebsocketServer:
             sys.exit(0)
 
     def listen(self, persist=False):
+        
         p.info("Listening on {}:{}".format(self.local_host, self.local_port))
         p.info("Use Ctrl+C to stop listening!")
         self.bind()

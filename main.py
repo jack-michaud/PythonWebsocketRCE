@@ -6,6 +6,7 @@ import sys
 import threading
 from sockets import WebsocketServer
 
+from clients import CLIENTS as SOCKET_CLIENTS
 
 from printer import Printer
 
@@ -15,10 +16,20 @@ if __name__ == "__main__":
         server = WebsocketServer("0.0.0.0", 1337, 'javascript')
         global listener_thread
         p = Printer()
-        p.info("PyRCE - Commands: listen, list, control")
+        p.info("PyRCE - Commands: listen, list, control, update, rename")
         while True:
             cmd = raw_input('> ')
             if cmd == "listen":
+                p.prompt("Which client are you accepting?")
+                for c in SOCKET_CLIENTS.keys():
+                    if c != "BASE":
+                        p.info(c)
+
+                cmd = raw_input()
+                if SOCKET_CLIENTS.get(cmd) is None:
+                    p.error("Not a valid client type.")
+                    continue
+                server = WebsocketServer("0.0.0.0", 1337, cmd)
                 listener_thread = threading.Thread(target=server.listen(persist=True))
                 listener_thread.start()
             if cmd == "stop":
