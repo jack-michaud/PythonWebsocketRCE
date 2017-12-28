@@ -1,12 +1,11 @@
+from __future__ import absolute_import
+
 import abc
 
-from clients.javascript import commands
-
-
 class CMD(object):
-	'''
-	An abstract Command class. Every command must extend/implement this.
-	'''
+    '''
+    An abstract Command class. Every command must extend/implement this.
+    '''
     
     def __init__(self, name, command, description):
         self.name = name

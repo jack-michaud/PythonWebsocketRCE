@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import threading
 import abc
 
@@ -5,7 +6,7 @@ from ws4py.framing import Frame
 
 OPCODE_PING = 0x9
 
-from request import Request
+from clients.request import Request
 from printer import Printer, clrs
 
 
@@ -32,6 +33,13 @@ class Client(object):
 
     def rename(self, name):
         self.name = name
+
+    @abc.abstractmethod
+    def get_controller(self):
+        """
+        Gets the controller class for this Client
+        """
+        pass
 
     @abc.abstractmethod
     def connection_handler(self):

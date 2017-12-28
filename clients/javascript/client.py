@@ -1,5 +1,12 @@
+from __future__ import absolute_import 
 
 from clients.clients import Client
+from clients.request import Request
+
+from printer import Printer, clrs
+p = Printer()
+
+from clients.javascript.control import JavascriptControl
 
 
 class JavascriptClient(Client):
@@ -20,3 +27,6 @@ class JavascriptClient(Client):
         self.send(f.build())
         resp = self.recv()
         return resp != ''
+
+    def get_controller(self):
+        return JavascriptControl
