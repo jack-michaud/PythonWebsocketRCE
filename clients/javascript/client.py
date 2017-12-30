@@ -6,6 +6,9 @@ from clients.request import Request
 from printer import Printer, clrs
 p = Printer()
 
+from ws4py.framing import Frame
+OPCODE_PING = 0x9
+
 from clients.javascript.control import JavascriptControl
 
 

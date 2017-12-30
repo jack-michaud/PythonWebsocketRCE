@@ -63,7 +63,7 @@ class Client(object):
         @return Data buffer
         '''
         buffer = ""
-        self.socket.settimeout(.3)
+        self.socket.settimeout(.1)
         try:
             while True:
                 data = self.socket.recv(1024)

@@ -16,14 +16,9 @@ class WebsocketServer:
     CLIENT_TYPE = None # Type of client to connect: javascript, ...
     # CLIENT: Initialized in constructor
 
-    def __init__(self, local_host, local_port, client_type):
+    def __init__(self, local_host, local_port):
         self.local_host = local_host
         self.local_port = local_port
-        if client_type is None:
-            raise Exception("Must specify client_type in constructor")
-        if SOCKET_CLIENTS.get(client_type) is None:
-            raise Exception("Must be a valid client type. Types: {}".format(SOCKET_CLIENTS.keys()))
-        self.CLIENT_TYPE = client_type
         self.server = None
 
     def bind(self):
@@ -36,8 +31,10 @@ class WebsocketServer:
             p.error(str(e))
             sys.exit(0)
 
-    def listen(self, persist=False):
-        
+    def listen(self, client_type, persist=False):
+        if SOCKET_CLIENTS.get(client_type) is None:
+            raise Exception("Must be a valid client type. Types: {}".format(SOCKET_CLIENTS.keys()))
+
         p.info("Listening on {}:{}".format(self.local_host, self.local_port))
         p.info("Use Ctrl+C to stop listening!")
         self.bind()
@@ -47,7 +44,7 @@ class WebsocketServer:
 
             try:
                 client_socket,addr = self.server.accept()
-                new_client = SOCKET_CLIENTS[self.CLIENT_TYPE](client_socket, addr)
+                new_client = SOCKET_CLIENTS[client_type](client_socket, addr)
                 new_client.start_handler_thread()
                 self.CLIENTS.append(new_client)
                 p.color_message(clrs.GREEN, "Received connection from {}".format(addr[0]), "<==")
@@ -75,6 +72,9 @@ class WebsocketServer:
         pass
 
     def close_websocket_client(self):
+        if self.server is None:
+            return
+
         self.server.close()
         [client.close() for client in self.CLIENTS]
 

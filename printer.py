@@ -1,3 +1,6 @@
+import logging
+
+logger = logging.getLogger()
 
 class clrs:
     OKBLUE = '\033[94m'
@@ -6,12 +9,14 @@ class clrs:
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
     END = '\033[0m'
+    WHITE = '\033[97m'
 
 class Printer:
 
     def color_message(self, color, msg, insert):
-        print "{}[{}]    {}{}".format(color, insert, msg, clrs.END)
-
+        logger.info("{}[{}]    {}{}".format(color, insert, msg, clrs.END))
+    def raw_color_message(self, color, msg):
+        logger.info("{}{}{}".format(color, msg, clrs.END))
     def info(self, msg):
         self.color_message(clrs.OKBLUE, msg, "*")
 

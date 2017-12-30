@@ -97,11 +97,13 @@ class Control(object):
                 resp = self.recv_response(c)
                 if resp is not None:
                     p.warn("Response from {}".format(str(c)))
-                    print resp
+                    p.raw_color_message(clrs.WHITE, resp)
                 return 1
 
             for client_socket in client_sockets:
-                send_recv_thread(payload, client_socket)
+                t = threading.Thread(target=send_recv_thread, args=(payload, client_socket))
+                t.daemon = True
+                t.start()
 
 
                 
