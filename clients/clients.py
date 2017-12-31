@@ -63,7 +63,7 @@ class Client(object):
         @return Data buffer
         '''
         buffer = ""
-        self.socket.settimeout(.1)
+        # self.socket.settimeout(1)
         try:
             while True:
                 data = self.socket.recv(1024)
@@ -75,7 +75,10 @@ class Client(object):
         return buffer
 
     def send(self, data):
-        self.socket.send(data)
+        try:
+            self.socket.send(data)
+        except Exception as e:
+            p.error("Unable to send to this client.")
 
     def close(self):
         '''
@@ -86,9 +89,11 @@ class Client(object):
 
 from clients.javascript import JavascriptClient
 from clients.bash import BashClient
+from clients.python import PythonClient
 
 CLIENTS = {
     "BASE": Client,
     "javascript": JavascriptClient,
     "bash": BashClient,
+    "python": PythonClient,
 }

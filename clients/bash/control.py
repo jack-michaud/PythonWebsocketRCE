@@ -1,4 +1,6 @@
 
+import re
+
 from clients.control import Control
 from clients.bash import commands
 
@@ -13,5 +15,18 @@ class BashController(Control):
     def recv_response(self, socket):
         buffer = socket.recv()
         socket.send("\n")
+
+        def parse_response(b):
+            resp = re.search(r"(?:\r\n)(.*)(?:\r\nbash-.*\$ )", b).group(1)
+            return resp
+
         buffer = socket.recv()
-        return buffer
+
+        while True:
+            try:
+                resp = parse_response(buffer)
+                break
+            except:
+                pass
+        
+        return resp

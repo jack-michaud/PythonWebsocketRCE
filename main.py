@@ -23,7 +23,7 @@ if __name__ == "__main__":
     try:
         server = WebsocketServer("0.0.0.0", 1337)
         p = Printer()
-        p.info("PyRCE - Commands: listen, list, control, update, rename")
+        p.info("PyRCE - Commands: listen, list, control, control batch, update, rename")
         while True:
             cmd = raw_input('> ')
             if cmd == "listen":
