@@ -37,7 +37,6 @@ for idx in range(len(clients)):
 for thread in threads:
     thread.join()
 
-import pdb; pdb.set_trace()
-print "Sum: {}".format(sum(results))
+print "Sum: {}".format(sum([int(r) for r in results]))
 print "Elapsed: {}".format(time.time() - start)
 

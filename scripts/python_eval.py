@@ -25,6 +25,7 @@ while True:
         resp = eval(buffer)
         print resp
         s.send(str(resp))
+        s.send("\n")
     except Exception as e:
         print "Exception: {}".format(str(e))
         s.send("{}".format(str(e)))

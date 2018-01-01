@@ -63,15 +63,23 @@ class Client(object):
         @return Data buffer
         '''
         buffer = ""
-        # self.socket.settimeout(1)
-        try:
-            while True:
-                data = self.socket.recv(1024)
-                if not data:
-                    break
-                buffer = buffer + data
-        except:
-            pass
+        exit = False
+        self.socket.settimeout(1) # TODO Fixthis 
+        while len(buffer) == 0 and not exit:
+            try:
+                while True:
+                    data = self.socket.recv(1024)
+                    if len(data) > 0 and data[-1] == "\n":
+                        buffer = buffer + data[:-1]
+                        exit = True
+                        break
+                    if data == "":
+                        exit = True
+                        break
+                    buffer = buffer + data
+            except:
+                pass
+        print "Returning"
         return buffer
 
     def send(self, data):

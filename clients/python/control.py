@@ -2,7 +2,7 @@
 import re
 
 from clients.control import Control
-from clients.bash import commands
+from clients.python import commands
 
 class PythonController(Control):
 
@@ -10,9 +10,9 @@ class PythonController(Control):
         return commands    
 
     def send_payload(self, payload, client_socket):
-        # if payload != "\n":
-        client_socket.send(str(payload))
-        # client_socket.send("\n")
+        if payload != "\n":
+            client_socket.send(str(payload))
+        client_socket.send("\n")
 
     def recv_response(self, socket):
         buffer = socket.recv()

@@ -98,6 +98,7 @@ class Control(object):
                 if resp is not None:
                     p.warn("Response from {}".format(str(c)))
                     p.raw_color_message(clrs.WHITE, resp)
+                    print resp
                 return 1
 
             for client_socket in client_sockets:
